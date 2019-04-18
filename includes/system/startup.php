@@ -1,8 +1,4 @@
 <?php
-/*
-Я должен собрать воедино все классы запустить их и установить им регистр
-
-*/
 
 namespace system;
 
@@ -59,6 +55,10 @@ final class StartUp
 
         if( $this->is_request( 'cron' ) ){
             \system\Cron::instance();
+        }
+
+        if( $this->is_request( 'ajax' ) ){
+            \system\Ajax::instance();
         }
 
         if( $this->is_request( 'admin' ) ){

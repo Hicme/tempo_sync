@@ -1,5 +1,4 @@
 <?php
-/* Во мне есть список всех возможных запросов относительно продукта и его данных. Должен возвращать уже полученный результат */
 
 namespace system\api;
 
@@ -7,56 +6,56 @@ class Product extends Request{
 
     public static function get_products()
     {
-        self::$request_type = 'products';
+        self::set_request_type( 'products' );
 
         return self::get_responce();
     }
 
-    public static function get_product( integer $product_id  )
+    public static function get_product( int $product_id  )
     {
-        self::$request_type = 'products/' . esc_attr( $product_id );
+        self::set_request_type( 'products/' . $product_id );
 
         return self::get_responce();
     }
 
-    public static function get_product_items( integer $product_id )
+    public static function get_product_items( int $product_id )
     {
-        self::$request_type = 'products/' . esc_attr( $product_id ) . '/items';
+        self::set_request_type( 'products/' . $product_id . '/items' );
 
         return self::get_responce();
     }
 
-    public static function get_product_documents( integer $product_id )
+    public static function get_product_documents( int $product_id )
     {
-        self::$request_type = 'products/' . esc_attr( $product_id ) . '/documents';
+        self::set_request_type( 'products/' . $product_id . '/documents' );
 
         return self::get_responce();
     }
 
-    public static function get_product_media( integer $product_id )
+    public static function get_product_media( int $product_id )
     {
-        self::$request_type = 'products/' . esc_attr( $product_id ) . '/media';
+        self::set_request_type( 'products/' . $product_id . '/media' );
 
         return self::get_responce();
     }
 
-    public static function get_product_categories( integer $product_id )
+    public static function get_product_categories( int $product_id )
     {
-        self::$request_type = 'products/' . esc_attr( $product_id ) . '/categories';
+        self::set_request_type( 'products/' . $product_id . '/categories' );
 
         return self::get_responce();
     }
 
-    public static function get_prduct_articles( integer $product_id )
+    public static function get_prduct_articles( int $product_id )
     {
-        self::$request_type = 'products/' . esc_attr( $product_id ) . '/articles';
+        self::set_request_type( 'products/' . $product_id . '/articles' );
 
         return self::get_responce();
     }
 
-    public static function get_product_related( integer $product_id )
+    public static function get_product_related( int $product_id )
     {
-        self::$request_type = 'products/' . esc_attr( $product_id ) . '/related';
+        self::set_request_type( 'products/' . $product_id . '/related' );
 
         return self::get_responce();
     }
