@@ -62,6 +62,13 @@ class Settings_Page
 
     public function sync_content()
     {
+
+        $sync = false;
+
+        if( isset( $_POST['start_sync_actions'] ) && wp_verify_nonce( $_POST['nonce'], 'check_nonce_parsing' ) ){
+            $sync = true;
+        }
+
         include P_PATH . 'includes/admin/templates/content-sync.php';
     }
 

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Tempo Sync
  * Description: Tempo Sync.
- * Version: 0.1
+ * Version: 0.9
  * Author: Support
  * Author URI: https://prosvit.design
  * Text Domain: tempo

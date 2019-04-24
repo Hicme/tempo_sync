@@ -22,7 +22,7 @@ if( ! function_exists( 'render_input' ) ){
 
         if ( ! empty( $args['attributes'] ) && is_array( $args['attributes'] ) ) {
 
-            foreach ( $args['custom_attributes'] as $attribute => $value ) {
+            foreach ( $args['attributes'] as $attribute => $value ) {
                 $attributes[] = esc_attr( $attribute ) . '="' . esc_attr( $value ) . '"';
             }
         }
@@ -43,4 +43,15 @@ if( ! function_exists( 'render_input' ) ){
        </p>
        <?php
     }
+}
+
+function generate_string( $length = 4 )
+{
+    $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < $length; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+    return $randomString;
 }

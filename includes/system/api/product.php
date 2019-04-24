@@ -4,9 +4,13 @@ namespace system\api;
 
 class Product extends Request{
 
-    public static function get_products()
+    public static function get_products( $skip = false )
     {
-        self::set_request_type( 'products' );
+        if( $skip ){
+            self::set_request_type( 'products' . '?' .  $skip );
+        }else{
+            self::set_request_type( 'products' );
+        }
 
         return self::get_responce();
     }
@@ -14,6 +18,20 @@ class Product extends Request{
     public static function get_product( int $product_id  )
     {
         self::set_request_type( 'products/' . $product_id );
+
+        return self::get_responce();
+    }
+
+    public static function get_product_attributes( int $product_id )
+    {
+        self::set_request_type( 'products/' . $product_id . '/attributes' );
+
+        return self::get_responce();
+    }
+
+    public static function get_product_applications( int $product_id )
+    {
+        self::set_request_type( 'products/' . $product_id . '/applications' );
 
         return self::get_responce();
     }
@@ -60,4 +78,24 @@ class Product extends Request{
         return self::get_responce();
     }
 
+    public static function get_product_modifers( int $product_id )
+    {
+        self::set_request_type( 'products/' . $product_id . '/modifiers' );
+
+        return self::get_responce();
+    }
+
+    public static function get_product_tabs( int $product_id )
+    {
+        self::set_request_type( 'products/' . $product_id . '/tabs' );
+
+        return self::get_responce();
+    }
+
+    public static function get_product_controlgroups( int $product_id )
+    {
+        self::set_request_type( 'products/' . $product_id . '/controlgroups' );
+
+        return self::get_responce();
+    }
 }

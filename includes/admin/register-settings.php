@@ -9,6 +9,7 @@ class Register_Settings
     {
         register_setting( 'p-settings', 'tempo_api', [ __CLASS__, 'sanitize_return' ] );
         register_setting( 'p-settings', 'tempo_syndicate', [ __CLASS__, 'sanitize_return' ] );
+        register_setting( 'p-settings', 'tempo_debug', [ __CLASS__, 'sanitize_checkbox' ] );
 
         add_settings_section(
             'id_p_general',
@@ -32,11 +33,30 @@ class Register_Settings
             'p_general_settings',
             'id_p_general'
         );
+
+        add_settings_field(
+            'id_debug',
+            'Debug',
+            [ __CLASS__, 'id_debug_html' ],
+            'p_general_settings',
+            'id_p_general'
+        );
     }
 
     public static function sanitize_return( $value )
-    {
+    {  
         return esc_attr( $value );
+    }
+
+    public static function sanitize_checkbox( $value )
+    {  
+
+        if( is_null( $value ) ){
+            return false;
+        }else{
+            return esc_attr( $value );
+        }
+
     }
 
     public static function settings_html()
@@ -66,6 +86,21 @@ class Register_Settings
             'name'        => 'tempo_syndicate',
             'value'       => get_option( 'tempo_syndicate', '' ),
             'description' => 'Put here Syndicate key',
+        ] );
+
+    }
+
+    public function id_debug_html()
+    {
+
+        render_input( [
+            'id'          => 'id_syndicate_key',
+            'label'       => '',
+            'type'        => 'checkbox',
+            'name'        => 'tempo_debug',
+            'value'       => '1',
+            'attributes'  => ( get_option( 'tempo_debug', false ) ? [ 'checked' => 'checked' ] : [] ) ,
+            'description' => 'Enable debug mode?',
         ] );
 
     }

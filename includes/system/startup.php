@@ -53,12 +53,12 @@ final class StartUp
         
         \system\Post_Types::init();
 
-        if( $this->is_request( 'cron' ) ){
-            \system\Cron::instance();
-        }
+        // if( $this->is_request( 'cron' ) ){
+            new \system\Cron();
+        // }
 
         if( $this->is_request( 'ajax' ) ){
-            \system\Ajax::instance();
+            new \system\Ajax();
         }
 
         if( $this->is_request( 'admin' ) ){

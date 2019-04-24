@@ -94,7 +94,7 @@ class Request{
             if( ! empty( ( $responce = curl_exec( self::$curl ) ) ) ){
                 return json_decode( $responce, true );
             }else{
-                return null;
+                return false;
             }
         }
 

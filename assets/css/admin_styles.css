@@ -48,3 +48,31 @@
     display: block;
     margin-bottom: 4px;
 }
+
+.wrapper_progress progress{
+    width: 100%;
+    height: 35px;
+}
+
+#sync_log{
+    padding: 20px;
+    width: auto;
+    border: 1px solid #aaa;
+    margin: 10px auto;
+}
+#sync_log legend{
+    padding: 0px 5px;
+    font-weight: bold;
+}
+#sync_log #sync_progress_log{
+    border: 1px solid #AAAAAA;
+    height: 380px;
+    overflow: auto;   
+}
+#sync_log #sync_progress_log > p {
+    margin: 0;
+    padding: 3px 5px;
+}
+#sync_log #sync_progress_log > p:nth-child(odd) {
+    background: #dfdfdf;
+}
