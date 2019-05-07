@@ -90,7 +90,7 @@ class Register_Settings
 
     }
 
-    public function id_debug_html()
+    public static function id_debug_html()
     {
 
         render_input( [

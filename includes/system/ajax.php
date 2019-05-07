@@ -8,6 +8,37 @@ class Ajax{
     {
         add_action( 'wp_ajax_start_parsing', [ $this, 'start_parsing' ] );
         add_action( 'wp_ajax_check_parsing', [ $this, 'check_parsing' ] );
+        add_action( 'wp_ajax_delete_import', [ $this, 'delete_import' ] );
+    }
+
+    public function delete_import()
+    {
+        if( !wp_verify_nonce( $_POST['nonce'], 'tempo-admin-ajax-nonce' ) ){
+            wp_send_json_error( [], 404 );
+        }
+
+        @ignore_user_abort(true);
+        @set_time_limit(900);
+
+        global $wpdb;
+        
+        $posts = $wpdb->get_results( 'SELECT ID FROM ' . $wpdb->posts . ' WHERE post_type = "tempes"', OBJECT );
+
+        if( $posts ){
+            foreach( $posts as $post ){
+                wp_delete_post( $post->ID, true );
+            }
+        }
+
+        $categories = $wpdb->get_results( 'SELECT t.term_id FROM ' . $wpdb->terms . ' AS t INNER JOIN ' . $wpdb->term_taxonomy . ' AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy IN ("tempes_cat")', OBJECT );
+
+        if( $categories ){
+            foreach( $categories as $category ){
+                wp_delete_term( $category->term_id, 'tempes_cat' );
+            }
+        }
+
+        wp_send_json( [ 'status' => 'OK', 'html' => 'All items was deleted!' ], 200 );
     }
 
     public function start_parsing()
@@ -19,13 +50,53 @@ class Ajax{
         @ignore_user_abort(true);
         @set_time_limit(900);
 
-        $parser = new Parser();
+        $restart = false;
 
-        $this->close_browser_connection( wp_json_encode( [ 'status' => 'OK', 'datas' => [ 'process_name' => $parser->get_name(), 'status' => '', 'logged' => '' ] ] ) .'        ' );
+        if( $process = get_transient( 'tempo_process' ) ){
 
-        $parser->start();
+            $log = get_transient( 'tempo_log' );
 
-        // die;
+            $operation_status = [
+                'status' => 'OK', 
+                'datas' => [ 
+                    'operation_status' => $process['operation_status'],
+                    'debug'            => $process['debug'],
+                    'start_time'       => $process['start_time'],
+                    'total_iterated'   => $process['total_iterated'],
+                    'total_elements'   => $process['total_elements'],
+                ],
+                'log' =>  $log,
+            ];
+
+            if( $process['operation_status'] == 'timeout' || $process['operation_status'] == 'complete' ){
+                $restart = true;
+            }
+
+        }else{
+
+            $operation_status = [
+                'status' => 'OK', 
+                'datas' => [
+                    'operation_status' => '',
+                    'debug'            => '',
+                    'start_time'       => '',
+                    'total_iterated'   => '',
+                    'total_elements'   => '',
+                ],
+                'log' => [],
+            ];
+
+            $restart = true;
+
+        }
+
+        $this->close_browser_connection( wp_json_encode( $operation_status ) . '        ' );
+        
+        if( $restart ){
+            tempo()->parser->start();
+        }
+
+        die;
     }
 
     public function check_parsing()
@@ -34,46 +105,33 @@ class Ajax{
             wp_send_json_error( [], 400 );
         }
 
-        if( $process_data = $this->get_process_by_name( $_POST['process_name'] ) ){
+        if( $process = get_transient( 'tempo_process' ) ){
+
+            $lastLogs = ( isset( $_POST['lastLogs'] ) ? esc_attr( $_POST['lastLogs'] ) : 0 );
+            $send_log = [];
+            if( $logs = get_transient( 'tempo_log' ) ){
+                foreach( $logs as $log ){
+                    if( $log['time'] > $lastLogs ){
+                        $send_log[] = [ 'time' => date( 'H:i:s', $log['time'] ), 'message' => $log['message'] ];
+                    }
+                }
+            }
 
             wp_send_json( [ 
                 'status' => 'OK', 
                 'datas' => [ 
-                        'process_name' => $process_data['process_name'], 
-                        'status'       => $process_data['status'], 
-                        'logged'       => $process_data['log'],
-                        'operation'    => $process_data['operation'],
-                    ] 
-                ], 200 );
+                    'operation_status' => $process['operation_status'],
+                    'debug'            => $process['debug'],
+                    'start_time'       => $process['start_time'],
+                    'total_iterated'   => $process['total_iterated'],
+                    'total_elements'   => $process['total_elements'],
+                ],
+                'log' =>  $send_log,
+            ], 200 );
         }else{
             wp_send_json( [ 'status' => 'ERROR', 'datas' => ['log' => 'Some error happens. No jobs found.' ] ], 200 );
         }
 
-    }
-
-    private function get_process_by_name( $process_name )
-    {
-        $operation_name = esc_attr( $process_name );
-
-        if( ( $status = get_transient( $operation_name ) ) && ( $status_log = get_transient( $operation_name . '_log' ) ) ){
-
-            if( $done = get_transient( esc_attr( $process_name ) . '_done' ) ){
-                $message = 'Operaton ended in ' . $done['time'];
-                
-                $operation = $message;
-            }else{
-                $operation = 'WORKING';
-            }
-
-            return [
-                'process_name' => $operation_name,
-                'status'       => $status,
-                'log'          => $status_log,
-                'operation'    => $operation,
-            ];
-        }else{
-            return false;
-        }
     }
 
     private function close_browser_connection( $txt = '' )

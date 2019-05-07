@@ -8,15 +8,9 @@ class Parser extends Processor {
     private $wp_post = null;
     private $wp_post_term = [];
 
-    public function __construct( $params = [] )
+    public function __construct()
     {
         @set_time_limit(900);
-
-        if( empty( $params ) ){
-            $this->get_name();
-        }else{
-            $this->set_name( $params[0] );
-        }
 
         parent::__construct();
 
@@ -153,14 +147,17 @@ class Parser extends Processor {
     public function start()
     {
 
-        //Get products from chache or api;
+        $this->set_current_operation();
 
+        //Get products from chache or api;
         if( $this->setup_elements() ){
             while( $this->can_processing() ){
 
                 $this->do_elements();
     
             }
+
+            die();
         }
 
     }

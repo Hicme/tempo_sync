@@ -1,6 +1,6 @@
 <?php
 
-function p_startup()
+function tempo()
 {
     return \system\StartUp::instance();
 }
@@ -45,6 +45,24 @@ if( ! function_exists( 'render_input' ) ){
     }
 }
 
+function get_category_by_tempo_id( $meta_value )
+{
+    global $wpdb;
+
+    $result = $wpdb->get_row( 'SELECT term_id FROM ' . $wpdb->termmeta . ' WHERE meta_key = "_categoryId" AND meta_value = "'. $meta_value .'"' , OBJECT );
+
+    return ( $result ? $result->term_id : false );
+}
+
+function get_product_by_tempo_id( $meta_value )
+{
+    global $wpdb;
+
+    $result = $wpdb->get_row( 'SELECT post_id FROM ' . $wpdb->postmeta . ' WHERE meta_key = "_productId" AND meta_value = "'. $meta_value .'"' , OBJECT );
+
+    return ( $result ? $result->post_id : false );
+}
+
 function generate_string( $length = 4 )
 {
     $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -54,4 +72,45 @@ function generate_string( $length = 4 )
         $randomString .= $characters[rand(0, $charactersLength - 1)];
     }
     return $randomString;
+}
+
+function get_tempo_image( $post_id = null, $size = 'thumbnail' )
+{
+
+    if( empty( $post_id ) ){
+        global $post;
+        $post_id = $post->ID;
+        $title = $post->title;
+    }else{
+        $title = get_the_title( $post_id );
+    }
+
+    switch( $size ){
+        case 'small':
+            $src = get_post_meta( $post_id, '_imageTiny', true );
+        break;
+        case 'thumbnail':
+            $src = get_post_meta( $post_id, '_imageThumb', true );
+        break;
+        case 'full':
+            $src = get_post_meta( $post_id, '_imageFull', true );
+        break;
+    }
+
+    if( $src ){
+        echo '<img class="img--fluid" src="'. $src .'" alt="'. $title .'">';
+    }
+
+}
+
+function get_tempo_attributes()
+{
+    ?>
+
+    <div class="tempo-product__ids">
+        <div class="tempo-product__id">Catalog# 000000</div>
+        <div class="tempo-product__id">Item # 00000</div>
+    </div>
+    
+    <?php
 }

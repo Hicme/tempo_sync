@@ -7,8 +7,11 @@ class Post_Types
 
     public static function init()
     {
-        add_action( 'init', [ __CLASS__, 'register_post_types' ], 5 );
-        add_action( 'init', [ __CLASS__, 'register_taxonomies' ], 5 );
+        add_action( 'setup_theme', [ __CLASS__, 'register_post_types' ], 5 );
+        add_action( 'setup_theme', [ __CLASS__, 'register_taxonomies' ], 5 );
+
+        add_action( 'init', [ __CLASS__, 'add_resources_rewrite' ], 100 );
+        add_action( 'wp', [ __CLASS__, 'add_pseudo_post_type' ], 100 );
     }
 
     public static function register_taxonomies()
@@ -50,11 +53,11 @@ class Post_Types
                     'delete_terms' => 'delete_tempes_terms',
                     'assign_terms' => 'assign_tempes_terms',
                 ],
-                'rewrite'               => [
-                    'slug'         => 'products',
-                    'with_front'   => false,
-                    'hierarchical' => true,
-                ],
+                // 'rewrite'               => [
+                //     'slug'         => 'products',
+                //     'with_front'   => false,
+                //     'hierarchical' => true,
+                // ],
             ]
          );
 
@@ -110,14 +113,54 @@ class Post_Types
                 'exclude_from_search' => false,
                 'hierarchical'        => false,
                 'query_var'           => true,
-                'rewrite'             => true,
+                'rewrite'             => [
+                    'slug' => 'products',
+                    'with_front ' => false,
+                ],
                 'supports'            => $supports,
-                'has_archive'         => $has_archive,
+                'has_archive'         => 'products',
                 'show_in_nav_menus'   => true,
                 'show_in_rest'        => true,
                 'show_in_menu'        => 'tempo',
             ]
         );
+
+    }
+
+    public static function add_resources_rewrite()
+    {
+
+        global $wp_rewrite;
+
+        $archive_slug = "\x72\x65\x73\x6f\x75\x72\x63\x65\x73";
+
+        $name = 'tempes';
+
+        add_rewrite_rule( "{$archive_slug}/?$", "index.php?post_type=$name", 'top' );
+        add_rewrite_rule( "{$archive_slug}/{$wp_rewrite->pagination_base}/([0-9]{1,})/?$", "index.php?post_type=$name" . '&paged=$matches[1]', 'top' );
+
+    }
+
+    public static function add_pseudo_post_type()
+    {
+
+        global $wp_the_query;
+        global $wp_post_types;
+        global $wp;
+
+        if( $wp->request == "\x72\x65\x73\x6f\x75\x72\x63\x65\x73" ){
+            $res = new \stdClass();
+
+            $res->labels = new \stdClass();
+
+            $res->labels->name = __( "\x52\x65\x73\x6f\x75\x72\x63\x65\x73", 'tempes' );
+            $res->has_archive = true;
+            $res->name = "\x72\x65\x73\x6f\x75\x72\x63\x65\x73";
+
+            $wp_post_types["\x72\x65\x73\x6f\x75\x72\x63\x65\x73"] = $res;
+            
+            $wp_the_query->query_vars['post_type'] = "\x72\x65\x73\x6f\x75\x72\x63\x65\x73";
+        }
 
     }
 

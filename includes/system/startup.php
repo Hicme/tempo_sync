@@ -17,7 +17,7 @@ final class StartUp
 
     public function __get( $key )
     {
-		if ( in_array( $key, array( 'cache', 'parser', 'api' ), true ) ) {
+		if ( in_array( $key, array( 'parser', 'api' ), true ) ) {
 			return $this->$key();
 		}
 	}
@@ -53,9 +53,9 @@ final class StartUp
         
         \system\Post_Types::init();
 
-        // if( $this->is_request( 'cron' ) ){
+        if( $this->is_request( 'cron' ) ){
             new \system\Cron();
-        // }
+        }
 
         if( $this->is_request( 'ajax' ) ){
             new \system\Ajax();
@@ -69,14 +69,9 @@ final class StartUp
 
 
 
-    public function cache()
-    {
-        return \system\Cache::instance();
-    }
-
     public function parser()
     {
-        return \system\Parser::instance();
+        return \system\parser\Processor::instance();
     }
 
     public function api()

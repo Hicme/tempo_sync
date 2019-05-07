@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Define plugin constants.
 if ( ! defined( 'P_VERSION' ) ) {
-	define( 'P_VERSION', '0.4' );
+	define( 'P_VERSION', '1.1.0' );
 }
 
 if ( ! defined( 'P_PATH' ) ) {
@@ -34,7 +34,7 @@ register_deactivation_hook( __FILE__, 'p_deactivate' );
 include P_PATH . 'autoloader.php';
 include P_PATH . 'includes/functions/functions.php';
 
-p_startup();
+tempo();
 
 function p_activate()
 {

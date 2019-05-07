@@ -15,10 +15,7 @@ class Cron
 
     public function trigger_parser( $params )
     {
-        $parser = new \system\Parser( $params );
-
-        $parser->start();
-
+        tempo()->parser->start();
     }
 
 }

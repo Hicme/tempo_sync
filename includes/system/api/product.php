@@ -2,100 +2,192 @@
 
 namespace system\api;
 
-class Product extends Request{
+class Product{
 
-    public static function get_products( $skip = false )
+    /**
+     * Get all products form api. Paginated
+     *
+     * @param string $skip
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_products( $skip = false )
     {
+        
         if( $skip ){
-            self::set_request_type( 'products' . '?' .  $skip );
+            $this->set_request_type( 'products' . '?' .  $skip );
         }else{
-            self::set_request_type( 'products' );
+            $this->set_request_type( 'products' );
         }
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product( int $product_id  )
+    /**
+     * Get single product form api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product( int $product_id  )
     {
-        self::set_request_type( 'products/' . $product_id );
+        $this->set_request_type( 'products/' . $product_id );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product_attributes( int $product_id )
+    /**
+     * Get product attributes from api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product_attributes( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/attributes' );
+        $this->set_request_type( 'products/' . $product_id . '/attributes' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product_applications( int $product_id )
+    /**
+     * Get product application meta from api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product_applications( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/applications' );
+        $this->set_request_type( 'products/' . $product_id . '/applications' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product_items( int $product_id )
+    /**
+     * Get product items meta form api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product_items( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/items' );
+        $this->set_request_type( 'products/' . $product_id . '/items' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product_documents( int $product_id )
+    /**
+     * Get product documents from api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product_documents( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/documents' );
+        $this->set_request_type( 'products/' . $product_id . '/documents' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product_media( int $product_id )
+    /**
+     * Get product media from api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product_media( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/media' );
+        $this->set_request_type( 'products/' . $product_id . '/media' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product_categories( int $product_id )
+    /**
+     * Get product categories from api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product_categories( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/categories' );
+        $this->set_request_type( 'products/' . $product_id . '/categories' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_prduct_articles( int $product_id )
+    /**
+     * Get porduct articles from api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_prduct_articles( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/articles' );
+        $this->set_request_type( 'products/' . $product_id . '/articles' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product_related( int $product_id )
+    /**
+     * Get related products for product from api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product_related( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/related' );
+        $this->set_request_type( 'products/' . $product_id . '/related' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product_modifers( int $product_id )
+    /**
+     * Get product modifers from api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product_modifers( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/modifiers' );
+        $this->set_request_type( 'products/' . $product_id . '/modifiers' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product_tabs( int $product_id )
+    /**
+     * Get product tabds meta from api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product_tabs( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/tabs' );
+        $this->set_request_type( 'products/' . $product_id . '/tabs' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_product_controlgroups( int $product_id )
+    /**
+     * Get product controlgroups form api
+     *
+     * @param integer $product_id
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_product_controlgroups( int $product_id )
     {
-        self::set_request_type( 'products/' . $product_id . '/controlgroups' );
+        $this->set_request_type( 'products/' . $product_id . '/controlgroups' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 }

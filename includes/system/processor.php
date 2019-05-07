@@ -10,10 +10,11 @@ class Processor
     private $operation_elements = [];    //all  elements from api
     private $iteration_count = null;
     private $total_count = null;      
-    private $page_num = 0;      
-    private $next_page_link = null;
+    private $page_num = 0;
+    private $current_page_link = false;
+    private $next_page_link = false;
     private $total_processed = 0;
-    private $current_element = -1;        //current iteration element number
+    private $current_element = -1;       //current iteration element number
     private $current_element_data = [];  //current iteration element datas
     private $start_time = null;          //whole process start time
     private $iteration_time = null;      //iteration start time
@@ -21,6 +22,7 @@ class Processor
     private $logging = [];               //log of whole process
     private $current_operation_log = ''; //current operation fast log
     private $log_iteration = 0;
+
 
 
     public function __construct()
@@ -98,14 +100,15 @@ class Processor
         //check info about process
         if( $cached_datas = $this->get_cached_datas() ){
             //if we has prev operation
-            $this->start_time = $cached_datas[ 'start_time' ];
-            $this->current_element = $cached_datas[ 'current_element' ];
-            $this->iteration_count = $cached_datas[ 'iteration_count' ] + 1;
-            $this->total_count = $cached_datas[ 'total_count' ] + 1;
-            $this->page_num = $cached_datas[ 'log_iteration' ];
-            $this->next_page_link = $cached_datas[ 'next_page_link' ];
-            $this->total_processed = $cached_datas[ 'total_processed' ];
-            $this->log_iteration = $cached_datas[ 'log_iteration' ];
+            $this->start_time        = $cached_datas[ 'start_time' ];
+            $this->current_element   = $cached_datas[ 'current_element' ];
+            $this->iteration_count   = $cached_datas[ 'iteration_count' ] + 1;
+            $this->total_count       = $cached_datas[ 'total_count' ] + 1;
+            $this->page_num          = $cached_datas[ 'page_num' ];
+            $this->current_page_link = $cached_datas[ 'current_page_link' ];
+            $this->next_page_link    = $cached_datas[ 'next_page_link' ];
+            $this->total_processed   = $cached_datas[ 'total_processed' ];
+            $this->log_iteration     = $cached_datas[ 'log_iteration' ];
             
             //Lets know that all works
             $this->write_log( 'Found previus operation. Was loaded from cache.' );
@@ -143,6 +146,7 @@ class Processor
 
     public function add_cron_task()
     {
+        update_option( 'tempo_current_operation', [ 'name' => $this->get_name(), 'status' => 'timeout' ] );
         wp_schedule_single_event( time() + 60, 'continue_parsing', [ $this->get_name() ] );
     }
 
@@ -161,6 +165,7 @@ class Processor
 
         //need set this meta for stop js actions
         set_transient( $this->get_name() . '_done' , [ 'time' => date( 'H:i:s', ( time() - $this->start_time ) ) ] );
+        delete_option( 'tempo_current_operation' );
 
     }
 
@@ -197,20 +202,33 @@ class Processor
     {
         $skip = false;
 
-        if( !is_null( $this->next_page_link ) ){
-            $url = parse_url( $this->next_page_link );
-            $skip = $url[ 'query' ];
+        //Looks like it new start or cron new cron actions.
+        if( empty( $this->operation_elements ) ){
+            if( $this->current_page_link ){
+                $url = parse_url( $this->current_page_link );
+                $skip = $url[ 'query' ];
+            }
+        }else{
+            if( $this->next_page_link ){
+                $url = parse_url( $this->next_page_link );
+                $skip = $url[ 'query' ];
+            }
         }
+
 
         if( $responce = $this->get_api_elements( $skip ) ){
             $this->total_count = $responce['@odata.count'];
+
+            if( $this->next_page_link ){
+                $this->current_page_link = $this->next_page_link;
+            }
 
             if( array_key_exists( '@odata.nextLink', $responce ) ){
                 $this->next_page_link = $responce['@odata.nextLink'];
                 $this->page_num++;
 
             }else{
-                $this->next_page_link = null;
+                $this->next_page_link = false;
             }
 
             $this->operation_elements = $responce['value'];
@@ -278,20 +296,21 @@ class Processor
 
         //Save status and etc
         $params = [
-            'start_time'      => $this->start_time,
-            'current_element' => $this->current_element,
-            'iteration_count' => $this->iteration_count - 1,
-            'total_count'     => $this->total_count - 1,
-            'total_processed' => $this->total_processed,
-            'page_num'        => $this->page_num,
-            'next_page_link'        => $this->next_page_link,
-            'log_iteration'   => $this->log_iteration,
+            'start_time'         => $this->start_time,
+            'current_element'    => $this->current_element,
+            'iteration_count'    => $this->iteration_count - 1,
+            'total_count'        => $this->total_count - 1,
+            'total_processed'    => $this->total_processed,
+            'page_num'           => $this->page_num,
+            'current_page_link'  => $this->current_page_link,
+            'next_page_link'     => $this->next_page_link,
+            'log_iteration'      => $this->log_iteration,
         ];
 
         set_transient( $this->get_name(), $params, 60 * 60 * 24 );
 
         if( !empty( $this->current_element_data ) ){
-            set_transient( $this->get_name() . '_' . $this->current_element, $this->current_element_data, 60 * 60 * 24 );
+            // set_transient( $this->get_name() . '_' . $this->current_element, $this->current_element_data, 60 * 60 * 24 );
         }
 
     }
@@ -311,7 +330,7 @@ class Processor
                 unset( $temp_element[ 'attributes@odata.navigationLink' ] );
                 $temp_element[ 'attributes' ] = $attr;
 
-                $this->write_log( '->Successfully loaded element Attributes.' );
+                // $this->write_log( '->Successfully loaded element Attributes.' );
             }
         }
 
@@ -320,7 +339,7 @@ class Processor
                 unset( $temp_element[ 'related@odata.navigationLink' ] );
                 $temp_element[ 'related' ] = $related;
 
-                $this->write_log( '->Successfully loaded element Related.' );
+                // $this->write_log( '->Successfully loaded element Related.' );
             }
         }
         
@@ -329,7 +348,7 @@ class Processor
                 unset( $temp_element[ 'applications@odata.navigationLink' ] );
                 $temp_element[ 'applications' ] = $applications;
 
-                $this->write_log( '->Successfully loaded element Applications.' );
+                // $this->write_log( '->Successfully loaded element Applications.' );
             }
         }
 
@@ -338,7 +357,7 @@ class Processor
                 unset( $temp_element[ 'articles@odata.navigationLink' ] );
                 $temp_element[ 'articles' ] = $articles;
 
-                $this->write_log( '->Successfully loaded element Articles.' );
+                // $this->write_log( '->Successfully loaded element Articles.' );
             }
         }
 
@@ -347,7 +366,7 @@ class Processor
                 unset( $temp_element[ 'documents@odata.navigationLink' ] );
                 $temp_element[ 'documents' ] = $documents;
 
-                $this->write_log( '->Successfully loaded element Documents.' );
+                // $this->write_log( '->Successfully loaded element Documents.' );
             }
         }
 
@@ -356,7 +375,7 @@ class Processor
                 unset( $temp_element[ 'media@odata.navigationLink' ] );
                 $temp_element[ 'media' ] = $media;
 
-                $this->write_log( '->Successfully loaded element Media.' );
+                // $this->write_log( '->Successfully loaded element Media.' );
             }
         }
         
@@ -365,7 +384,7 @@ class Processor
                 unset( $temp_element[ 'categories@odata.navigationLink' ] );
                 $temp_element[ 'categories' ] = $categories;
 
-                $this->write_log( '->Successfully loaded element Categories.' );
+                // $this->write_log( '->Successfully loaded element Categories.' );
             }
         }
 
@@ -374,7 +393,7 @@ class Processor
                 unset( $temp_element[ 'items@odata.navigationLink' ] );
                 $temp_element[ 'items' ] = $items;
 
-                $this->write_log( '->Successfully loaded element Items.' );
+                // $this->write_log( '->Successfully loaded element Items.' );
             }
         }
 
@@ -383,7 +402,7 @@ class Processor
                 unset( $temp_element[ 'modifiers@odata.navigationLink' ] );
                 $temp_element[ 'modifiers' ] = $modifiers;
 
-                $this->write_log( '->Successfully loaded element Modifiers.' );
+                // $this->write_log( '->Successfully loaded element Modifiers.' );
             }
         }
 
@@ -392,7 +411,7 @@ class Processor
                 unset( $temp_element[ 'tabs@odata.navigationLink' ] );
                 $temp_element[ 'tabs' ] = $tabs;
 
-                $this->write_log( '->Successfully loaded element Tabs.' );
+                // $this->write_log( '->Successfully loaded element Tabs.' );
             }
         }
 
@@ -401,7 +420,7 @@ class Processor
                 unset( $temp_element[ 'controlgroups@odata.navigationLink' ] );
                 $temp_element[ 'controlgroups' ] = $controlgroups;
 
-                $this->write_log( '->Successfully loaded element Controlgroups.' );
+                // $this->write_log( '->Successfully loaded element Controlgroups.' );
             }
         }
 
@@ -416,6 +435,11 @@ class Processor
             return false;
         }
         
+    }
+
+    public function set_current_operation()
+    {
+        update_option( 'tempo_current_operation', [ 'name' => $this->get_name(), 'status' => 'online' ] );
     }
     
 }

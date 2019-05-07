@@ -8,13 +8,17 @@
                 <div class="wrapper_export">
                     <p>To start synchronization press START button.</p>
                     <?php submit_button( 'START', 'primary', 'start_export', false ); ?>
+                    <button id="delete_import" type="button" class="delete_import" >DELETE ALL PRODUCTS AND CATEGORIES</button>
+                </div>
+                <div class="sync-loading">
+                    <div class="lds-facebook"><div></div><div></div><div></div></div>
+                    <p><?php _e( 'Deleting' ); ?> ...</p>
                 </div>
             </div>
         </form>
 
         <?php
-            // $parser = new \system\Parser();
-            // $parser->start();
+            // tempo()->parser->start();
         ?>
     <?php }else{ ?>
 

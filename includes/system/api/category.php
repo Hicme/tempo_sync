@@ -2,35 +2,67 @@
 
 namespace system\api;
 
-class Category extends Request{
+class Category extends Product{
     
-    public static function get_categories()
+    /**
+     * Get all categories form api. Paginated
+     *
+     * @param boolean $skip
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_categories( $skip = false )
     {
-        self::set_request_type( 'categories' );
+        if( $skip ){
+            $this->set_request_type( 'categories' . '?' .  $skip );
+        }else{
+            $this->set_request_type( 'categories' );
+        }
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_category( int $category )
+    /**
+     * Get single category form api
+     *
+     * @param integer $category
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_category( int $category )
     {
-        self::set_request_type( 'categories/' . $category );
+        $this->set_request_type( 'categories/' . $category );
 
-        return self::get_responce();
+        return $this->get_responce();
     
     }
 
-    public static function get_sub_categories( int $category )
+    /**
+     * Get sub categories to category from api
+     *
+     * @param integer $category
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_sub_categories( int $category )
     {
-        self::set_request_type( 'categories/' . $category . '/subs' );
+        $this->set_request_type( 'categories/' . $category . '/subs' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
-    public static function get_category_products( int $category )
+    /**
+     * Get category products form api
+     *
+     * @param integer $category
+     * @return array
+     * @since 1.0.0
+     */
+    public function get_category_products( int $category )
     {
-        self::set_request_type( 'categories/' . $category . '/products' );
+        $this->set_request_type( 'categories/' . $category . '/products' );
 
-        return self::get_responce();
+        return $this->get_responce();
     }
 
 }
