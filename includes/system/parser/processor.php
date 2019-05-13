@@ -248,7 +248,7 @@ class Processor extends Category{
      */
     public function set_cron_task()
     {
-        wp_schedule_single_event( time() + 60, 'continue_parsing' );
+        wp_schedule_single_event( time(), 'continue_parsing' );
 
         if( $this->debug ){
             $this->write_log( 'Added WPCron task.' );
@@ -428,6 +428,10 @@ class Processor extends Category{
     {
         $path = P_PATH . 'logs/';
 
+        if( ! is_dir( $path ) ){
+            mkdir( $path, 0700 );
+        }
+
         if( $log_file = fopen( $path . 'tempo_' . $this->get_log_name() . '.log', 'r' ) ){
             while ( ( $buffer = fgets( $log_file, 4096 ) ) !== false) {
                 $this->logging[] = json_decode( $buffer, true );
@@ -559,11 +563,11 @@ class Processor extends Category{
                 $this->total_iterated++;
 
 
-                if( $this->debug && $this->get_type() == 'products' && $this->iterated > 100 ){
-                    $this->write_log( 'Stop operation because of debug mode. ' );
-                    $this->set_status( 'complete' );
-                    return false;
-                }
+                // if( $this->debug && $this->get_type() == 'products' && $this->iterated > 100 ){
+                //     $this->write_log( 'Stop operation because of debug mode. ' );
+                //     $this->set_status( 'complete' );
+                //     return false;
+                // }
 
                 return true;
 

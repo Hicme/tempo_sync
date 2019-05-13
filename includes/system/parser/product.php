@@ -125,7 +125,7 @@ class Product{
 
                     $term_cat = [];
 
-                    foreach( $this->get_meta_values( $categories ) as $cat ){
+                    foreach( $this->get_value_from_meta( $categories ) as $cat ){
                         if( $wp_cat = get_category_by_tempo_id( $cat[ 'categoryId' ] ) ){
                             $term_cat[] = $wp_cat;
                             wp_set_object_terms( $wp_post, intval( $wp_cat ), 'tempes_cat', true );
@@ -232,7 +232,7 @@ class Product{
                 // $this->update_element_data( 'categories', $this->get_meta_values( $categories ) );
                 $term_cat = [];
 
-                foreach( $this->get_meta_values( $categories ) as $cat ){
+                foreach( $this->get_value_from_meta( $categories ) as $cat ){
                     if( $wp_cat = get_category_by_tempo_id( $cat[ 'categoryId' ] ) ){
                         $term_cat[] = $wp_cat;
                         wp_set_object_terms( $wp_post, intval( $wp_cat ), 'tempes_cat', true );

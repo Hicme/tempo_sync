@@ -5,6 +5,22 @@ namespace system\api;
 class Request{
 
     /**
+     * If bedug is opened
+     *
+     * @var boolean
+     * @since 1.1.0
+     */
+    private $debug = false;
+
+    /**
+     * Temp logging data
+     *
+     * @var array
+     * @since 1.2.0
+     */
+    private $logging = [];
+
+    /**
      * Temp save API Key
      *
      * @var string
@@ -41,7 +57,59 @@ class Request{
      */
     public function __construct()
     {
+        $this->set_debug();
         add_action( 'shutdown', [ $this , 'shutdown_curl' ] );
+    }
+
+    /**
+     * Set debug mode on or off
+     *
+     * @return boolean
+     * @since 1.1.0
+     */
+    private function set_debug()
+    {
+        $this->debug = get_option( 'tempo_debug', false );
+    }
+
+    /**
+     * Save log in file and clean temp variable
+     *
+     * @return void
+     * @since 1.1.0
+     */
+    public function save_log()
+    {
+        $path = P_PATH . 'logs/';
+
+        if( ! is_dir( $path ) ){
+            mkdir( $path, 0700 );
+        }
+
+        $log_file = fopen( $path . 'api_' . tempo()->parser->get_log_name() . '.log', 'a' );
+
+        if( ! empty( $this->logging ) ){
+            foreach ( $this->logging as $log ) {
+                fwrite( $log_file, json_encode( $log ) . "\n" );
+            }
+        }
+
+        fclose( $log_file );
+
+        $this->logging = [];
+
+    }
+
+    /**
+     * Create and write log
+     *
+     * @param string $datas
+     * @return void
+     * @since 1.0.0
+     */
+    public function write_log( $datas = '' )
+    {
+        $this->logging[] = [ 'time' => time(), 'message' => $datas ];       
     }
 
     /**
@@ -189,7 +257,16 @@ class Request{
         if( curl_error( $this->get_curl() ) ){
             return false;
         }else{
-            if( ! empty( ( $responce = curl_exec( $this->get_curl() ) ) ) && $responce != 'Not Authorized' ){
+
+            $responce = curl_exec( $this->get_curl() );
+
+            if( $this->debug ){
+                $this->write_log( $responce );
+                $this->save_log();
+            }
+
+            if( ! empty( ( $responce ) ) && $responce != 'Not Authorized' ){
+
                 $decoded_response = json_decode( $responce, true );
 
                 if( isset( $decoded_response[ 'statusCode' ] ) && $decoded_response[ 'statusCode' ] == 429 ){

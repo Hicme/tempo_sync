@@ -53,9 +53,9 @@ final class StartUp
         
         \system\Post_Types::init();
 
-        if( $this->is_request( 'cron' ) ){
+        // if( $this->is_request( 'cron' ) ){
             new \system\Cron();
-        }
+        // }
 
         if( $this->is_request( 'ajax' ) ){
             new \system\Ajax();
