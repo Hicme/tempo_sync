@@ -110,7 +110,7 @@ class Ajax{
 
             $lastLogs = ( isset( $_POST['lastLogs'] ) ? esc_attr( $_POST['lastLogs'] ) : 0 );
             $send_log = [];
-            if( $logs = get_transient( 'tempo_log' ) ){
+            if( $logs = tempo()->parser->get_log() ){
                 foreach( $logs as $log ){
                     if( $log['time'] > $lastLogs ){
                         $send_log[] = [ 'time_raw' => $log['time'], 'time' => date( 'H:i:s', $log['time'] ), 'message' => $log['message'] ];
