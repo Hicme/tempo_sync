@@ -2,7 +2,8 @@
 
 namespace system\api;
 
-class Category extends Product{
+trait Category
+{
     
     /**
      * Get all categories form api. Paginated

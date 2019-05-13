@@ -91,17 +91,24 @@ class Processor extends Category{
      */
     private $logging = [];
 
+    /**
+     * Save log name for current operation
+     *
+     * @var string
+     * @since 1.1.0
+     */
+    private $log_name = '';
+
 
     /**
      * Class constructor
      */
     public function __construct()
     {
-        @set_time_limit(900);
+        @set_time_limit(500);
 
         $this->set_debug();
     }
-
 
     /**
      * Start exit actions
@@ -109,9 +116,17 @@ class Processor extends Category{
      * @return void
      * @since 1.1.0
      */
-    public function exit()
+    public function exit( $string = '' )
     {
+
         do_action( 'tempo_sync_exit' );
+        if( ! empty( $string ) ){
+            $this->write_log( 'Script exit. Cause: ' . $string );
+        }else{
+            $this->write_log( 'Script exit.' );
+        }
+        
+        $this->save_log();
         exit;
     }
 
@@ -219,6 +234,10 @@ class Processor extends Category{
     {
         $serverlimit = ini_get( 'max_execution_time' );
         $this->max_time = $this->iteration_time + ceil( $serverlimit / 1.2 );
+
+        if( $this->debug ){
+            $this->write_log( 'Max php script time set: ' . $this->max_time );
+        }
     }
 
     /**
@@ -230,6 +249,10 @@ class Processor extends Category{
     public function set_cron_task()
     {
         wp_schedule_single_event( time() + 60, 'continue_parsing' );
+
+        if( $this->debug ){
+            $this->write_log( 'Added WPCron task.' );
+        }
     }
 
     /**
@@ -247,11 +270,20 @@ class Processor extends Category{
 
             if( array_key_exists( '@odata.nextLink', $categories ) ){
                 $url = parse_url( $categories['@odata.nextLink'] );
+
+                if( $this->debug ){
+                    $this->write_log( 'Found paginate category. Link set: ' . esc_url( $categories['@odata.nextLink'] ) );
+                }
+
                 $this->set_category_as_elements( $url[ 'query' ] );
             }
 
             return true;
         }else{
+
+            $this->write_log( 'Unable to get categories.' );
+            $this->set_status( 'error' );
+
             return false;
         }
     }
@@ -271,11 +303,20 @@ class Processor extends Category{
 
             if( array_key_exists( '@odata.nextLink', $products ) ){
                 $url = parse_url( $products['@odata.nextLink'] );
+
+                if( $this->debug ){
+                    $this->write_log( 'Found paginate products. Link set: ' . esc_url( $products['@odata.nextLink'] ) );
+                }
+
                 $this->set_products_as_elements( $url[ 'query' ] );
             }
 
             return true;
         }else{
+
+            $this->write_log( 'Unable to get product.' );
+            $this->set_status( 'error' );
+
             return false;
         }
     }
@@ -348,7 +389,75 @@ class Processor extends Category{
      */
     public function check_connections()
     {
-        return tempo()->api->check_connect();
+        return ( ! empty( tempo()->methods->check_connect() ) ? true : false );
+    }
+
+    /**
+     * Return current log file name
+     *
+     * @return string
+     * @since 1.1.0
+     */
+    public function get_log_name()
+    {
+        if( !empty( $this->log_name ) ){
+            return $this->log_name;
+        }else{
+            return $this->create_log_name();
+        }
+    }
+
+    /**
+     * Create log name
+     *
+     * @return string
+     * @since 1.1.0
+     */
+    public function create_log_name()
+    {
+        return $this->log_name = date( 'His' );
+    }
+
+    /**
+     * Return log from file
+     *
+     * @return void
+     * @since 1.1.0
+     */
+    public function get_log()
+    {
+        $path = P_PATH . 'logs/';
+
+        if( $log_file = fopen( $path . 'tempo_' . $this->get_log_name() . '.log', 'r' ) ){
+            while ( ( $buffer = fgets( $log_file, 4096 ) ) !== false) {
+                $this->logging[] = json_decode( $buffer, true );
+            }
+        }
+
+    }
+
+    /**
+     * Save log in file and clean temp variable
+     *
+     * @return void
+     * @since 1.1.0
+     */
+    public function save_log()
+    {
+        $path = P_PATH . 'logs/';
+
+        $log_file = fopen( $path . 'tempo_' . $this->get_log_name() . '.log', 'a' );
+
+        if( ! empty( $this->logging ) ){
+            foreach ( $this->logging as $log ) {
+                fwrite( $log_file, json_encode( $log ) . "\n" );
+            }
+        }
+
+        fclose( $log_file );
+
+        $this->logging = [];
+
     }
 
     /**
@@ -360,14 +469,7 @@ class Processor extends Category{
      */
     public function write_log( $datas = '' )
     {
-        if( empty( $this->logging ) ){
-            if( $old_log = get_transient( 'tempo_log' ) ){
-                $this->logging = $old_log;
-            }
-        }
-
-        $this->logging[] = [ 'time' => time(), 'message' => $datas ];
-       
+        $this->logging[] = [ 'time' => time(), 'message' => $datas ];       
     }
 
     /**
@@ -456,6 +558,13 @@ class Processor extends Category{
                 $this->iterated++;
                 $this->total_iterated++;
 
+
+                if( $this->debug && $this->get_type() == 'products' && $this->iterated > 100 ){
+                    $this->write_log( 'Stop operation because of debug mode. ' );
+                    $this->set_status( 'complete' );
+                    return false;
+                }
+
                 return true;
 
             }elseif( $this->iterated == $this->get_count_elements() && $this->get_count_elements() > 0 && $this->get_type() == 'categories' ){
@@ -517,7 +626,8 @@ class Processor extends Category{
     public function save_process()
     {
         //Save log
-        set_transient( 'tempo_log', $this->logging, 60 * 60 * 24 );
+        // set_transient( 'tempo_log', $this->logging, 60 * 60 * 24 );
+        $this->save_log();
 
         //Save status and etc
         $params = [
@@ -529,12 +639,19 @@ class Processor extends Category{
             'total_elements'   => $this->total_elements,
             'total_iterated'   => $this->total_iterated,
             'count_elements'   => $this->get_count_elements(),
+            'log_file'         => $this->log_name,
         ];
 
         set_transient( 'tempo_process', $params, 60 * 60 * 24 );
 
     }
 
+    /**
+     * Count expected items
+     *
+     * @return void
+     * @since 1.1.0
+     */
     public function count_total_elements()
     {
         $this->total_elements = 0;
@@ -545,7 +662,7 @@ class Processor extends Category{
         if( $categories && $products ){
             $this->total_elements = $categories['@odata.count'] + $products['@odata.count'] - 2;
         }
-        
+
     }
 
     /**
@@ -560,8 +677,13 @@ class Processor extends Category{
         $this->count_total_elements();
 
         if( $old_operation = get_transient( 'tempo_process' ) ){
+
             switch ( $old_operation['operation_status'] ){
                 case 'timeout':
+
+                    if( $this->debug ){
+                        $this->write_log( 'Found timeout old task.' );
+                    }
                 
                     if( $old_operation['operation_type'] == 'categories' ){
                         $this->set_type( 'categories' );
@@ -576,27 +698,32 @@ class Processor extends Category{
                     $this->total_iterated = $old_operation['total_iterated'] - 1;
                     $this->total_elements = $old_operation['total_elements'];
                     
-                    if( $old_log =  get_transient( 'tempo_log' ) ){
-                        $this->logging = $old_log;
+                    if( isset( $old_operation['log_file'] ) ){
+                        $this->log_name = $old_operation['log_file'];
+                        // $this->get_log();
                     }
 
                     break;
                 case 'active':
 
-                    $this->exit();
+                    $this->exit( 'Double start' );
 
                     break;
                 case 'complete':
                 
                     delete_transient( 'tempo_process' );
                     delete_transient( 'tempo_log' );
+
+                    $this->create_log_name();
               
                     break;
                 default:
 
                     delete_transient( 'tempo_process' );
                     delete_transient( 'tempo_log' );
-                  
+
+                    $this->create_log_name();
+
                     break;
             }
                 
@@ -614,7 +741,6 @@ class Processor extends Category{
      */
     public function start()
     {
-
         if( $this->check_connections() ){
 
             $this->before_start();
@@ -630,12 +756,10 @@ class Processor extends Category{
             }
 
         }else{
-
             $this->write_log( 'Error while trying setup connection.' );
-
         }
 
-        $this->exit();
+        $this->exit( 'End start function' );
 
     }
     

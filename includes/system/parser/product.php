@@ -5,7 +5,7 @@ namespace system\parser;
 class Product{
 
     /**
-     * Return array of products from API
+     * Return array of products from api
      *
      * @param string $skip
      * @return array
@@ -13,7 +13,7 @@ class Product{
      */
     public function get_api_products( $skip = false )
     {
-        if( $elements = tempo()->api->get_products( $skip ) ){
+        if( $elements = tempo()->methods->get_products( $skip ) ){
             return $elements;
         }
 
@@ -21,7 +21,7 @@ class Product{
     }
 
     /**
-     * Get meta form API and save or update product
+     * Get meta from api and save or update product
      *
      * @return void
      * @since 1.1.0
@@ -38,13 +38,13 @@ class Product{
     }
 
     /**
-     * Pritify meta form API
+     * Pritify meta from api
      *
      * @param array $datas
      * @return mixed
      * @since 1.1.0
      */
-    public function get_meta_values( $datas )
+    public function get_value_from_meta( $datas )
     {
         if( isset( $datas[ 'value' ] ) ){
             return $datas[ 'value' ];
@@ -96,84 +96,64 @@ class Product{
     
     
             if( $this->get_element_data( 'attributes@odata.navigationLink' ) ){
-                if( $attr = tempo()->api->get_product_attributes( $this->get_element_data( 'productId' ) ) ){
-                    update_post_meta( $wp_post, '_attributes', $this->get_meta_values( $attr ) );
-                }
+                $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'attributes', true );
             }
     
             if( $this->get_element_data( 'related@odata.navigationLink' ) ){
-                if( $related = tempo()->api->get_product_related( $this->get_element_data( 'productId' ) ) ){
-                    update_post_meta( $wp_post, '_related', $this->get_meta_values( $related ) );
-                }
+                $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'related', true );
             }
     
             if( $this->get_element_data( 'applications@odata.navigationLink' ) ){
-                if( $applications = tempo()->api->get_product_applications( $this->get_element_data( 'productId' ) ) ){
-                    update_post_meta( $wp_post, '_applications', $this->get_meta_values( $applications ) );
-                }
+                $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'applications', true );
             }
     
             if( $this->get_element_data( 'articles@odata.navigationLink' ) ){
-                if( $articles = tempo()->api->get_prduct_articles( $this->get_element_data( 'productId' ) ) ){
-                    update_post_meta( $wp_post, '_articles', $this->get_meta_values( $articles ) );
-                }
+                $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'articles', true );
             }
     
             if( $this->get_element_data( 'documents@odata.navigationLink' ) ){
-                if( $documents = tempo()->api->get_product_documents( $this->get_element_data( 'productId' ) ) ){
-                    update_post_meta( $wp_post, '_documents', $this->get_meta_values( $documents ) );
-                }
+                $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'documents', true );
             }
     
             if( $this->get_element_data( 'media@odata.navigationLink' ) ){
-                if( $media = tempo()->api->get_product_media( $this->get_element_data( 'productId' ) ) ){
-                    update_post_meta( $wp_post, '_media', $this->get_meta_values( $media ) );
-                }
+                $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'media', true );
             }
             
             if( $this->get_element_data( 'categories@odata.navigationLink' ) ){
-                if( $categories = tempo()->api->get_product_categories( $this->get_element_data( 'productId' ) ) ){
+                if( $categories = tempo()->methods->get_product_categories( $this->get_element_data( 'productId' ) ) ){
                     // $this->update_element_data( 'categories', $this->get_meta_values( $categories ) );
 
                     $term_cat = [];
 
                     foreach( $this->get_meta_values( $categories ) as $cat ){
-                        if( $wp_cat = get_category_by_tempo_id( $cat ) ){
+                        if( $wp_cat = get_category_by_tempo_id( $cat[ 'categoryId' ] ) ){
                             $term_cat[] = $wp_cat;
-                            wp_set_object_terms( $wp_post, $wp_cat, 'tempes_cat' );
+                            wp_set_object_terms( $wp_post, intval( $wp_cat ), 'tempes_cat', true );
                         }
                     }
                     
-                    update_post_meta( $wp_post, '_categories', $term_cat );
+                    add_post_meta( $wp_post, '_categories', $term_cat );
 
                 }
             }
     
             if( $this->get_element_data( 'items@odata.navigationLink' ) ){
-                if( $items = tempo()->api->get_product_items( $this->get_element_data( 'productId' ) ) ){
-                    update_post_meta( $wp_post, '_items', $this->get_meta_values( $items ) );
-                }
+                $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'items', true );
             }
     
             if( $this->get_element_data( 'modifiers@odata.navigationLink' ) ){
-                if( $modifiers = tempo()->api->get_product_modifers( $this->get_element_data( 'productId' ) ) ){
-                    update_post_meta( $wp_post, '_modifiers', $this->get_meta_values( $modifiers ) );
-                }
+                $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'modifiers', true );
             }
     
             if( $this->get_element_data( 'tabs@odata.navigationLink' ) ){
-                if( $tabs = tempo()->api->get_product_tabs( $this->get_element_data( 'productId' ) ) ){
-                    update_post_meta( $wp_post, '_tabs', $this->get_meta_values( $tabs ) );
-                }
+                $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'tabs', true );
             }
     
             if( $this->get_element_data( 'controlgroups@odata.navigationLink' ) ){
-                if( $controlgroups = tempo()->api->get_product_controlgroups( $this->get_element_data( 'productId' ) ) ){
-                    update_post_meta( $wp_post, '_controlgroups', $this->get_meta_values( $controlgroups ) );
-                }
+                $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'controlgroups', true );
             }
     
-            update_post_meta( $wp_post, '_sync_date', $this->get_start_time() );
+            add_post_meta( $wp_post, '_sync_date', $this->get_start_time() );
 
         }else{
             $this->write_log( 'ERROR: While insert post. CODE: ' . $wp_post->get_error_message() );
@@ -224,50 +204,38 @@ class Product{
 
 
         if( $this->get_element_data( 'attributes@odata.navigationLink' ) ){
-            if( $attr = tempo()->api->get_product_attributes( $this->get_element_data( 'productId' ) ) ){
-                update_post_meta( $wp_post, '_attributes', $this->get_meta_values( $attr ) );
-            }
+            $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'attributes' );
         }
 
         if( $this->get_element_data( 'related@odata.navigationLink' ) ){
-            if( $related = tempo()->api->get_product_related( $this->get_element_data( 'productId' ) ) ){
-                update_post_meta( $wp_post, '_related', $this->get_meta_values( $related ) );
-            }
+            $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'related' );
         }
 
         if( $this->get_element_data( 'applications@odata.navigationLink' ) ){
-            if( $applications = tempo()->api->get_product_applications( $this->get_element_data( 'productId' ) ) ){
-                update_post_meta( $wp_post, '_applications', $this->get_meta_values( $applications ) );
-            }
+            $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'applications' );
         }
 
         if( $this->get_element_data( 'articles@odata.navigationLink' ) ){
-            if( $articles = tempo()->api->get_prduct_articles( $this->get_element_data( 'productId' ) ) ){
-                update_post_meta( $wp_post, '_articles', $this->get_meta_values( $articles ) );
-            }
+            $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'articles' );
         }
 
         if( $this->get_element_data( 'documents@odata.navigationLink' ) ){
-            if( $documents = tempo()->api->get_product_documents( $this->get_element_data( 'productId' ) ) ){
-                update_post_meta( $wp_post, '_documents', $this->get_meta_values( $documents ) );
-            }
+            $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'documents' );
         }
 
         if( $this->get_element_data( 'media@odata.navigationLink' ) ){
-            if( $media = tempo()->api->get_product_media( $this->get_element_data( 'productId' ) ) ){
-                update_post_meta( $wp_post, '_media', $this->get_meta_values( $media ) );
-            }
+            $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'media' );
         }
         
         if( $this->get_element_data( 'categories@odata.navigationLink' ) ){
-            if( $categories = tempo()->api->get_product_categories( $this->get_element_data( 'productId' ) ) ){
+            if( $categories = tempo()->methods->get_product_categories( $this->get_element_data( 'productId' ) ) ){
                 // $this->update_element_data( 'categories', $this->get_meta_values( $categories ) );
                 $term_cat = [];
 
                 foreach( $this->get_meta_values( $categories ) as $cat ){
-                    if( $wp_cat = get_category_by_tempo_id( $cat ) ){
+                    if( $wp_cat = get_category_by_tempo_id( $cat[ 'categoryId' ] ) ){
                         $term_cat[] = $wp_cat;
-                        wp_set_object_terms( $wp_post, $wp_cat, 'tempes_cat' );
+                        wp_set_object_terms( $wp_post, intval( $wp_cat ), 'tempes_cat', true );
                     }
                 }
                 
@@ -277,30 +245,97 @@ class Product{
         }
 
         if( $this->get_element_data( 'items@odata.navigationLink' ) ){
-            if( $items = tempo()->api->get_product_items( $this->get_element_data( 'productId' ) ) ){
-                update_post_meta( $wp_post, '_items', $this->get_meta_values( $items ) );
-            }
+            $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'items' );
         }
 
         if( $this->get_element_data( 'modifiers@odata.navigationLink' ) ){
-            if( $modifiers = tempo()->api->get_product_modifers( $this->get_element_data( 'productId' ) ) ){
-                update_post_meta( $wp_post, '_modifiers', $this->get_meta_values( $modifiers ) );
-            }
+            $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'modifiers' );
         }
 
         if( $this->get_element_data( 'tabs@odata.navigationLink' ) ){
-            if( $tabs = tempo()->api->get_product_tabs( $this->get_element_data( 'productId' ) ) ){
-                update_post_meta( $wp_post, '_tabs', $this->get_meta_values( $tabs ) );
-            }
+            $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'tabs' );
         }
 
         if( $this->get_element_data( 'controlgroups@odata.navigationLink' ) ){
-            if( $controlgroups = tempo()->api->get_product_controlgroups( $this->get_element_data( 'productId' ) ) ){
-                update_post_meta( $wp_post, '_controlgroups', $this->get_meta_values( $controlgroups ) );
-            }
+            $this->set_product_meta( $wp_post, $this->get_element_data( 'productId' ), 'controlgroups' );
         }
 
         update_post_meta( $wp_post, '_sync_date', $this->get_start_time() );
+    }
+
+    /**
+     * Try get and update meta from API datas
+     *
+     * @param integer $post_id
+     * @param integer $tempo_id
+     * @param string $type
+     * @param boolean $method
+     * @return integer
+     * @since 1.2.0
+     */
+    public function set_product_meta( $post_id, $tempo_id, $type, $method = true )
+    {
+
+        if( empty( $type ) ){
+            return false;
+        }
+
+        $meta_key = '_' . $type;
+
+        switch ( $type ) {
+            case 'attributes':
+                $meta_value = tempo()->methods->get_product_attributes( $tempo_id );
+                break;
+
+            case 'related':
+                $meta_value = tempo()->methods->get_product_related( $tempo_id );
+                break;
+
+            case 'applications':
+                $meta_value = tempo()->methods->get_product_applications( $tempo_id );
+                break;
+
+            case 'articles':
+                $meta_value = tempo()->methods->get_product_articles( $tempo_id );
+                break;
+
+            case 'documents':
+                $meta_value = tempo()->methods->get_product_documents( $tempo_id );
+                break;
+
+            case 'media':
+                $meta_value = tempo()->methods->get_product_media( $tempo_id );
+                break;
+
+            case 'items':
+                $meta_value = tempo()->methods->get_product_items( $tempo_id );
+                break;
+
+            case 'modifiers':
+                $meta_value = tempo()->methods->get_product_modifers( $tempo_id );
+                break;
+
+            case 'tabs':
+                $meta_value = tempo()->methods->get_product_tabs( $tempo_id );
+                break;
+
+            case 'controlgroups':
+                $meta_value = tempo()->methods->get_product_controlgroups( $tempo_id );
+                break;
+            
+        }
+
+        if( empty( $meta_value ) ){
+            return false;
+        }
+
+        if( $method ){
+            update_post_meta( $post_id, $meta_key, $this->get_value_from_meta( $meta_value ) );
+        }else{
+            add_post_meta( $post_id, $meta_key, $this->get_value_from_meta( $meta_value ), true );
+        }
+
+        return ( ! empty( $meta_value ) );
     }
 
 }

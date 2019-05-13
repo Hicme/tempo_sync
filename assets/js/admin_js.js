@@ -16,7 +16,7 @@ function start_admin_sync(){
     this.start_sync = function(){
         current_class.ajax( { action : "start_parsing", nonce : TEMPOAJAX.ajax_nonce } ).done( function( responce ){
             if( responce.status == 'OK' ){              
-                setTimeout( current_class.start_check_status(), 2000 );
+                setTimeout( current_class.start_check_status(), 4000 );
 
                 if( responce.datas.operation_status == 'complete' ){
                     current_class.write_progress( 0, 0 );
@@ -30,7 +30,7 @@ function start_admin_sync(){
 
         $messages.forEach( function( item, i, arr ){
             current_class.write_log( item.message, item.time );
-            current_class.lastLogs = item.time;
+            current_class.lastLogs = item.time_raw;
         } );
 
     }
@@ -48,9 +48,9 @@ function start_admin_sync(){
                         current_class.checkLogs( responce.log );
                     }
 
-                    if( responce.datas.operation_status == 'complete' ){
+                    if( responce.datas.operation_status == 'complete' || responce.datas.operation_status == 'error' ){
                         current_class.write_log( responce.datas.operation_status );
-                        console.log( 'Task complete' );
+                        console.log( 'Task ' + responce.datas.operation_status );
                         clearInterval( current_class.process );
                     }
 
@@ -101,7 +101,17 @@ function start_admin_sync(){
 
                 } );
             }
-        } );    
+        } );
+
+
+        jQuery( '.try_recync' ).on( 'click', function(e){
+            e.preventDefault();
+            document.body.style.cursor = "wait";
+            current_class.ajax( { action : "try_update_meta", nonce : TEMPOAJAX.ajax_nonce, post_id : jQuery(this).data( 'post_id' ), type : jQuery(this).data( 'type' ) } ).done( function( responce ){
+                document.body.style.cursor = "";
+                alert( responce.datas.message );
+            } );
+        } );
     }
 
     this.show_respoce = function( content ){

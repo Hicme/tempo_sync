@@ -12,6 +12,11 @@ class Post_Types
 
         add_action( 'init', [ __CLASS__, 'add_resources_rewrite' ], 100 );
         add_action( 'wp', [ __CLASS__, 'add_pseudo_post_type' ], 100 );
+
+        add_filter( 'manage_posts_columns', [ __CLASS__, 'add_tempo_post_column' ], 10, 2 );
+
+        add_action('manage_posts_custom_column', [ __CLASS__, 'add_tempo_post_column_content' ], 10, 2);
+
     }
 
     public static function register_taxonomies()
@@ -79,7 +84,7 @@ class Post_Types
             'tempes',
             [
                 'labels' => [
-                    'name'                  => __( 'Tempo Products', 'tempo' ),
+                    'name'                  => __( 'Products', 'tempo' ),
                     'singular_name'         => __( 'Tempo Product', 'tempo' ),
                     'all_items'             => __( 'All Tempo Products', 'tempo' ),
                     'menu_name'             => _x( 'Tempo Products', 'Admin menu name', 'tempo' ),
@@ -162,6 +167,53 @@ class Post_Types
             $wp_the_query->query_vars['post_type'] = "\x72\x65\x73\x6f\x75\x72\x63\x65\x73";
         }
 
+    }
+
+    public static function add_tempo_post_column( $columns, $post_type )
+    {
+
+        if( $post_type == 'tempes' ){
+            $save_date = $columns['date'];
+
+            unset( $columns['date'] );
+
+            $columns['api_id'] = 'API ID';
+
+            $columns['attributes']  = 'Attributes';
+
+            $columns['items']  = 'Items';
+
+            $columns['date'] = $save_date;
+        }
+
+        return $columns;
+    }
+
+    public static function add_tempo_post_column_content( $column_name, $post_id )
+    {
+        if( $column_name == 'api_id' ){
+            if( $api_id = get_post_meta( $post_id, '_productId', true ) ){
+                echo '<span class="loaded_datas">'. $api_id .'</span>';
+            }else{
+                echo '<span class="not_loaded_datas"><span class="dashicons dashicons-no"></span></span>';
+            }
+        }
+
+        if( $column_name == 'attributes' ){
+            if( !empty( get_post_meta( $post_id, '_attributes', true ) ) ){
+                echo '<span class="loaded_datas"><span class="dashicons dashicons-yes"></span></span>';
+            }else{
+                echo '<span class="not_loaded_datas"><a href="#" class="dashicons dashicons-no try_recync" data-post_id="' . $post_id . '" data-type="attributes"></a></span>';
+            }
+        }
+
+        if( $column_name == 'items' ){
+            if( !empty( get_post_meta( $post_id, '_items', true ) ) ){
+                echo '<span class="loaded_datas"><span class="dashicons dashicons-yes"></span></span>';
+            }else{
+                echo '<span class="not_loaded_datas"><a href="#" class="dashicons dashicons-no try_recync" data-post_id="' . $post_id . '" data-type="items"></a></span>';
+            }
+        }
     }
 
 }

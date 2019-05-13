@@ -2,9 +2,7 @@
 
 namespace system\api;
 
-class Request extends Category{
-
-    use \system\Instance;
+class Request{
 
     /**
      * Temp save API Key
@@ -43,7 +41,7 @@ class Request extends Category{
      */
     public function __construct()
     {
-        add_action( 'shutdown', [ __CLASS__ , 'shutdown_curl' ] );
+        add_action( 'shutdown', [ $this , 'shutdown_curl' ] );
     }
 
     /**
@@ -152,27 +150,11 @@ class Request extends Category{
      * @return void
      * @since 1.0.0
      */
-    public static function shutdown_curl()
+    public function shutdown_curl()
     {
         if( ! is_null( $this->get_curl() ) ){
             curl_close( $this->get_curl() );
         }
-    }
-
-    /**
-     * Start curl request
-     *
-     * @return mixed
-     * @since 1.0.0
-     */
-    private function start_request()
-    {
-        if( $this->set_curl() && $this->set_keys() ){
-            return $this->exec();
-        }
-
-        return false;
-
     }
     
     /**
@@ -183,7 +165,13 @@ class Request extends Category{
      */
     public function get_responce()
     {
-        return $this->start_request();
+        
+        if( $this->set_curl() && $this->set_keys() ){
+            return $this->exec();
+        }
+
+        return false;
+
     }
 
     /**
@@ -196,12 +184,21 @@ class Request extends Category{
     {
 
         $this->request();
+        
 
         if( curl_error( $this->get_curl() ) ){
             return false;
         }else{
-            if( ! empty( ( $responce = curl_exec( $this->get_curl() ) ) ) ){
-                return json_decode( $responce, true );
+            if( ! empty( ( $responce = curl_exec( $this->get_curl() ) ) ) && $responce != 'Not Authorized' ){
+                $decoded_response = json_decode( $responce, true );
+
+                if( isset( $decoded_response[ 'statusCode' ] ) && $decoded_response[ 'statusCode' ] == 429 ){
+                    sleep(5);
+                    $this->exec();
+                }
+
+                return $decoded_response;
+                
             }else{
                 return false;
             }
@@ -238,33 +235,6 @@ class Request extends Category{
             ]
         );
 
-    }
-
-    /**
-     * Get api access and informations about api keys
-     *
-     * @return array
-     * @since 1.0.0
-     */
-    public function check_connect()
-    {
-        $this->set_request_type( 'me' );
-
-        return $this->get_responce();
-    }
-
-    /**
-     * Send custom api request
-     *
-     * @param string $type
-     * @return array
-     * @since 1.0.0
-     */
-    public function custom_request( $type )
-    {
-        $this->set_request_type( $type );
-
-        return $this->get_responce();
     }
 
 }

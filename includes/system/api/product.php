@@ -2,7 +2,8 @@
 
 namespace system\api;
 
-class Product{
+trait Product
+{
 
     /**
      * Get all products form api. Paginated
@@ -128,7 +129,7 @@ class Product{
      * @return array
      * @since 1.0.0
      */
-    public function get_prduct_articles( int $product_id )
+    public function get_product_articles( int $product_id )
     {
         $this->set_request_type( 'products/' . $product_id . '/articles' );
 

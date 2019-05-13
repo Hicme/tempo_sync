@@ -63,6 +63,17 @@ function get_product_by_tempo_id( $meta_value )
     return ( $result ? $result->post_id : false );
 }
 
+function get_product_tempo_id( $post_id )
+{
+
+    if( empty( $post_id ) ){
+        return false;
+    }
+
+    return get_post_meta( $post_id, '_productId', true );
+
+}
+
 function generate_string( $length = 4 )
 {
     $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -103,13 +114,40 @@ function get_tempo_image( $post_id = null, $size = 'thumbnail' )
 
 }
 
-function get_tempo_attributes()
+function get_tempo_attributes( $post_id = null )
 {
+
+    if( empty( $post_id ) ){
+        global $post;
+        $post_id = $post->ID;
+    }
+
+    $p_code = get_post_meta( $post_id, '_productCode', true );
+
+    $i_codes = [];
+
+    if( $temps = get_post_meta( $post_id, '_items', true ) ){
+        foreach ( $temps['value'] as $temp ) {
+            $i_codes[] = $temp[ 'itemNumber' ];
+        }
+    }
+
     ?>
 
     <div class="tempo-product__ids">
-        <div class="tempo-product__id">Catalog# 000000</div>
-        <div class="tempo-product__id">Item # 00000</div>
+        <?php
+
+            if( $p_code ){
+                echo '<div class="tempo-product__id">Catalog# '. $p_code .'</div>';
+            }
+
+            if( $i_codes ){
+                foreach ( $i_codes as $i_code ) {
+                    echo '<div class="tempo-product__id">Item # ' . $i_code . '</div>';
+                }
+            }
+
+        ?>
     </div>
     
     <?php

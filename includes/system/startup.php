@@ -17,7 +17,7 @@ final class StartUp
 
     public function __get( $key )
     {
-		if ( in_array( $key, array( 'parser', 'api' ), true ) ) {
+		if ( in_array( $key, array( 'parser', 'methods' ), true ) ) {
 			return $this->$key();
 		}
 	}
@@ -74,9 +74,9 @@ final class StartUp
         return \system\parser\Processor::instance();
     }
 
-    public function api()
+    public function methods()
     {
-        return \system\api\Request::instance();
+        return \system\api\Methods::instance();
     }
 
 }

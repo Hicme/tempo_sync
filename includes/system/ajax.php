@@ -9,6 +9,7 @@ class Ajax{
         add_action( 'wp_ajax_start_parsing', [ $this, 'start_parsing' ] );
         add_action( 'wp_ajax_check_parsing', [ $this, 'check_parsing' ] );
         add_action( 'wp_ajax_delete_import', [ $this, 'delete_import' ] );
+        add_action( 'wp_ajax_try_update_meta', [ $this, 'try_update_meta' ] );
     }
 
     public function delete_import()
@@ -48,13 +49,13 @@ class Ajax{
         }
 
         @ignore_user_abort(true);
-        @set_time_limit(900);
+        @set_time_limit(500);
 
         $restart = false;
 
         if( $process = get_transient( 'tempo_process' ) ){
 
-            $log = get_transient( 'tempo_log' );
+            $log = [];
 
             $operation_status = [
                 'status' => 'OK', 
@@ -112,7 +113,7 @@ class Ajax{
             if( $logs = get_transient( 'tempo_log' ) ){
                 foreach( $logs as $log ){
                     if( $log['time'] > $lastLogs ){
-                        $send_log[] = [ 'time' => date( 'H:i:s', $log['time'] ), 'message' => $log['message'] ];
+                        $send_log[] = [ 'time_raw' => $log['time'], 'time' => date( 'H:i:s', $log['time'] ), 'message' => $log['message'] ];
                     }
                 }
             }
@@ -151,6 +152,28 @@ class Ajax{
 		}
 		flush();
 		if (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+    }
+
+    public function try_update_meta()
+    {
+        if( !wp_verify_nonce( $_POST['nonce'], 'tempo-admin-ajax-nonce' ) ){
+            wp_send_json_error( [], 400 );
+        }
+
+        $product_id = esc_attr( $_POST['post_id'] );
+
+        if( get_post_type( $product_id ) == 'tempes' ){
+            if( tempo()->parser->set_product_meta( $product_id, get_product_tempo_id( $product_id ), esc_attr( $_POST['type'] ) ) ){
+                $message = 'Datas was updated!';
+            }else{
+                $message = 'API return empty value.';
+            }
+
+        }else{
+            $message = 'No post found!';
+        }
+
+        wp_send_json( [ 'status' => 'OK', 'datas' => [ 'message' => $message ] ], 200 );
     }
 
 }

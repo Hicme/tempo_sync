@@ -23,12 +23,12 @@ class Category extends Product{
      * Return list of categories
      *
      * @param string $skip
-     * @return array
+     * @return mixed
      * @since 1.1.0
      */
     public function get_api_catalogs( $skip = false )
     {
-        if( $elements = tempo()->api->get_categories( $skip ) ){
+        if( $elements = tempo()->methods->get_categories( $skip ) ){
             return $elements;
         }
 

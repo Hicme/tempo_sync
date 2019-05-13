@@ -145,3 +145,18 @@
       height: 26px;
     }
   }
+.loaded_datas{
+    color: #ffffff;
+    padding: 4px;
+    border-radius: 5px;
+    background-color: #66BB6A;
+}
+.not_loaded_datas{
+    color: #ffffff;
+    padding: 4px;
+    border-radius: 5px;
+    background-color: #ef5350;
+}
+.not_loaded_datas a{
+    color: #fff;
+}

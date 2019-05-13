@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Tempo Sync
  * Description: Tempo Sync.
- * Version: 0.9
+ * Version: 1.2.0
  * Author: Support
  * Author URI: https://prosvit.design
  * Text Domain: tempo
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Define plugin constants.
 if ( ! defined( 'P_VERSION' ) ) {
-	define( 'P_VERSION', '1.1.0' );
+	define( 'P_VERSION', '1.2.0' );
 }
 
 if ( ! defined( 'P_PATH' ) ) {
